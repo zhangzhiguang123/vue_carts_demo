@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="./node_modules/bootstrap/dist/css/bootstrap.min.css">
+    <title>Document</title>
+</head>
+<body>
+    <div id="app">
+        <div class="container">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>
+                            <label for="selectedAll">全选</label>&nbsp;<input id="selectedAll" type="checkbox"
+                                v-model="flagAll" @change="selAll">
+                        </th>
+                        <th>商品</th>
+                        <th>单价</th>
+                        <th>数量</th>
+                        <th>小计</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="(item,index) in goodsLists">
+                        <td>
+                            <input type="checkbox" v-model="item.isSelected" @change="selone" name="" id="">
+                        </td>
+                        <td>
+                            <img :src="item.productCover" alt="" /><span>{{item.productName}}</span>
+                        </td>
+                        <td>
+                            {{item.productPrice}}
+                        </td>
+                        <td>
+                            <input type="number" name="" id="" v-model="item.productCount">
+                        </td>
+                        <td>
+                            ￥{{(item.productCount*item.productPrice).toFixed(2)}}
+                        </td>
+                        <td><button class="btn btn-danger" @click="deletThis">删除</button></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            总计:￥{{doAllMoney().toFixed(2)}}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <script src="./node_modules/axios/dist/axios.min.js"></script>
+    <script src="node_modules/vue/dist/vue.js"></script>
+    <script>
+        let elApp = new Vue({
+            el: "#app",
+            data: {
+                goodsLists: [], //保存请求过来的商品列表
+                flagAll: false
+            },
+            created() {   //实例创建完成后利用axios请求本地carts.json文件
+                axios.get("./carts.json").then(data => {
+                    this.goodsLists = data.data;
+                });
+            },
+            methods: {
+                selAll() {  //实现全选功能
+                    this.goodsLists.forEach(element => {
+                        element.isSelected = this.flagAll;
+                    });
+                },
+                doAllMoney() { //计算总数
+                    let allMoney = 0;
+                    this.goodsLists.forEach(element => {
+                        if (element.isSelected) {
+                            allMoney += parseFloat((element.productCount * element.productPrice).toFixed(2));
+                        }
+                    });
+                    return allMoney;
+                },
+                deletThis(index) { //实现删除功能
+                    this.goodsLists.splice(index, 1);
+                },
+                selone() {    //实现 单个商品不被选中时，全选按钮不被选中。单个商品全部被选中，全选按钮也被选中
+                    let fff = 1;  //立个flag
+                    this.goodsLists.forEach(item => {
+                        if (item.isSelected === false) {
+                            this.flagAll = false;
+                            fff = 0;
+                        }
+                    });
+                    if (fff === 1) {
+                        this.flagAll = true;
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>
